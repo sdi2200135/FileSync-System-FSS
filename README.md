@@ -549,5 +549,3 @@ make clean
 ./fss_script.sh -p manager_logfile.txt -c listStopped
 ./fss_script.sh -p /backup/pics        -c purge
 ```
-./fss_script.sh -p /backup/pics        -c purge
-```
