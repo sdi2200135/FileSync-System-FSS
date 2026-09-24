@@ -1,9 +1,5 @@
 # System-Programming-HW1
 # FSS (FileSync System) 
-
-> This document describes **exactly what the submitted code does**, including
-> its known deviations from the assignment specification.
-
 ---
 
 ## 1. Overview
