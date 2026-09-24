@@ -1,5 +1,4 @@
-# System-Programming-HW1
-# FSS (FileSync System) 
+# FileSync System FSS (System-Programming-HW1)
 ---
 
 ## 1. Overview
