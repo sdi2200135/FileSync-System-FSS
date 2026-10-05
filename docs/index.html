@@ -1,0 +1,1506 @@
+<!-- site for the explanation of the project -->
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FileSync System FSS — System Programming</title>
+<style>
+:root {
+  --bg: #0f0d08;
+  --bg-card: #1c1811;
+  --bg-soft: #2a241a;
+  --text: #f0e6d2;
+  --text-muted: #a89880;
+  --accent: #f59e0b;
+  --accent-2: #fbbf24;
+  --success: #34d399;
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --info: #60a5fa;
+  --border: #3a3122;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+nav {
+  background: rgba(15, 13, 8, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 0 1.5rem;
+}
+
+.nav-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.logo {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--accent);
+  letter-spacing: -0.5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+.logo::before { content: "📁"; font-size: 1.2rem; }
+
+.nav-links {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  list-style: none;
+}
+
+.nav-links a {
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 0.5rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.nav-links a:hover { color: var(--text); background: var(--bg-soft); }
+.nav-links a.active { color: var(--bg); background: var(--accent); }
+
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+.page { display: none; animation: fadeIn 0.4s ease; }
+.page.active { display: block; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hero {
+  text-align: center;
+  padding: 2rem 0 3rem;
+}
+
+.hero h1 {
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-weight: 800;
+  letter-spacing: -1px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 1rem;
+}
+
+.hero p {
+  color: var(--text-muted);
+  max-width: 760px;
+  margin: 0 auto 1.5rem;
+  font-size: 1.05rem;
+}
+
+.badges {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.badge {
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.badge.c { color: #60a5fa; border-color: #60a5fa; }
+.badge.unix { color: #34d399; border-color: #34d399; }
+.badge.ipc { color: #fbbf24; border-color: #fbbf24; }
+.badge.syscalls { color: #f87171; border-color: #f87171; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+  margin: 1.5rem 0;
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.5rem;
+  transition: all 0.25s;
+}
+
+.card:hover { transform: translateY(-3px); border-color: var(--accent); }
+
+.card h3 { font-size: 1.1rem; margin-bottom: 0.6rem; color: var(--text); }
+.card p { color: var(--text-muted); font-size: 0.92rem; }
+
+.comp-card { cursor: pointer; position: relative; overflow: hidden; }
+.comp-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--accent);
+}
+.comp-card.console::before { background: #60a5fa; }
+.comp-card.manager::before { background: #f59e0b; }
+.comp-card.worker::before { background: #34d399; }
+.comp-card.script::before { background: #a78bfa; }
+
+.comp-card h3 { display: flex; align-items: center; gap: 0.5rem; }
+.comp-card .tag {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.tag.console { background: rgba(96,165,250,0.15); color: #60a5fa; }
+.tag.manager { background: rgba(245,158,11,0.15); color: var(--accent); }
+.tag.worker { background: rgba(52,211,153,0.15); color: var(--success); }
+.tag.script { background: rgba(167,139,250,0.15); color: #a78bfa; }
+
+.section {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.section h2 {
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--text);
+}
+
+.section h2 .num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  background: var(--accent);
+  color: var(--bg);
+  flex-shrink: 0;
+}
+
+.section h3 {
+  font-size: 1rem;
+  margin: 1.2rem 0 0.6rem;
+  color: var(--accent-2);
+  font-weight: 600;
+}
+
+.comp-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.comp-header .icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.comp-header.console .icon { background: rgba(96,165,250,0.15); color: #60a5fa; }
+.comp-header.manager .icon { background: rgba(245,158,11,0.15); color: var(--accent); }
+.comp-header.worker .icon { background: rgba(52,211,153,0.15); color: var(--success); }
+.comp-header.script .icon { background: rgba(167,139,250,0.15); color: #a78bfa; }
+
+.comp-header h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.5px; }
+.comp-header p { color: var(--text-muted); font-size: 0.95rem; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.75rem 0;
+  font-size: 0.9rem;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+th, td {
+  padding: 0.7rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+th {
+  background: var(--bg-soft);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(245, 158, 11, 0.04); }
+
+td code, p code, li code, .step code {
+  background: var(--bg-soft);
+  padding: 0.15rem 0.45rem;
+  border-radius: 5px;
+  font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  font-size: 0.85em;
+  color: var(--accent-2);
+  border: 1px solid var(--border);
+}
+
+.step-list {
+  list-style: none;
+  counter-reset: step;
+  padding-left: 0;
+}
+
+.step-list li {
+  counter-increment: step;
+  position: relative;
+  padding: 0.8rem 0 0.8rem 3rem;
+  border-left: 2px solid var(--border);
+  margin-left: 1rem;
+}
+
+.step-list li::before {
+  content: counter(step);
+  position: absolute;
+  left: -1.05rem;
+  top: 0.8rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border: 3px solid var(--bg-card);
+}
+
+.step-list li:last-child { border-left-color: transparent; }
+.step-list li strong { color: var(--text); }
+.step-list li span { color: var(--text-muted); font-size: 0.92rem; display: block; margin-top: 0.15rem; }
+
+pre {
+  background: #060502;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  overflow-x: auto;
+  font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: #d4c4a8;
+  margin: 0.75rem 0;
+}
+
+pre .kw { color: #c084fc; }
+pre .cm { color: #7a6b52; font-style: italic; }
+pre .str { color: #86efac; }
+pre .num { color: #fbbf24; }
+pre .fn { color: #5eead4; }
+pre .type { color: #60a5fa; }
+
+.result-box {
+  background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(251,191,36,0.08));
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  margin: 0.75rem 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+.alert {
+  padding: 1rem 1.2rem;
+  border-radius: 10px;
+  margin: 0.75rem 0;
+  border-left: 4px solid;
+  font-size: 0.92rem;
+}
+
+.alert.info { background: rgba(96,165,250,0.08); border-color: var(--info); }
+.alert.success { background: rgba(52,211,153,0.08); border-color: var(--success); }
+.alert.warn { background: rgba(251,191,36,0.08); border-color: var(--warn); }
+.alert.danger { background: rgba(248,113,113,0.08); border-color: var(--danger); }
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.stat {
+  background: var(--bg-soft);
+  border-radius: 10px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.stat .value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--accent);
+  display: block;
+  line-height: 1.2;
+}
+
+.stat .name {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+/* ASCII Diagram */
+.ascii-diagram {
+  background: #060502;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--accent-2);
+  overflow-x: auto;
+  white-space: pre;
+}
+
+/* Limitation items */
+.limitation {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--bg-soft);
+  border-radius: 10px;
+  margin-bottom: 0.75rem;
+  border-left: 3px solid var(--danger);
+  transition: all 0.2s;
+}
+
+.limitation:hover { background: #2f2820; }
+
+.limitation .icon-box {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  background: rgba(248,113,113,0.15);
+  color: var(--danger);
+}
+
+.limitation .content { flex: 1; }
+.limitation .content strong { color: var(--text); display: block; margin-bottom: 0.2rem; font-size: 0.95rem; }
+.limitation .content span { color: var(--text-muted); font-size: 0.88rem; }
+
+.limitation.warn { border-left-color: var(--warn); }
+.limitation.warn .icon-box { background: rgba(251,191,36,0.15); color: var(--warn); }
+.limitation.info { border-left-color: var(--info); }
+.limitation.info .icon-box { background: rgba(96,165,250,0.15); color: var(--info); }
+
+/* Progress Bar */
+.progress-wrap {
+  background: var(--bg-soft);
+  border-radius: 8px;
+  height: 12px;
+  overflow: hidden;
+  margin: 0.5rem 0;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  border-radius: 8px;
+  transition: width 0.5s ease;
+}
+
+/* Checklist */
+.checklist {
+  display: grid;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  background: var(--bg-soft);
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.check-item .status {
+  flex-shrink: 0;
+  font-size: 1.1rem;
+}
+.check-item .status.ok { color: var(--success); }
+.check-item .status.warn { color: var(--warn); }
+.check-item .status.fail { color: var(--danger); }
+
+footer {
+  text-align: center;
+  padding: 2rem 1.5rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--border);
+  margin-top: 2rem;
+}
+
+@media (max-width: 640px) {
+  .nav-inner { height: auto; padding: 0.75rem 0; }
+  .nav-links { width: 100%; justify-content: center; }
+  .nav-links a { padding: 0.4rem 0.7rem; font-size: 0.82rem; }
+  .section { padding: 1.25rem; }
+  .comp-header h1 { font-size: 1.3rem; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="logo" onclick="go('home')">FileSync FSS</div>
+    <ul class="nav-links">
+      <li><a data-page="home" onclick="go('home')">Αρχική</a></li>
+      <li><a data-page="architecture" onclick="go('architecture')">Αρχιτεκτονική</a></li>
+      <li><a data-page="console" onclick="go('console')">Console</a></li>
+      <li><a data-page="manager" onclick="go('manager')">Manager</a></li>
+      <li><a data-page="worker" onclick="go('worker')">Worker</a></li>
+      <li><a data-page="script" onclick="go('script')">Script</a></li>
+      <li><a data-page="limitations" onclick="go('limitations')">Περιορισμοί</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main>
+
+<!-- ==================== HOME ==================== -->
+<section class="page active" id="home">
+  <div class="hero">
+    <h1>FileSync System (FSS)</h1>
+    <p>
+      Unix file synchronization system σε <strong>C</strong>, χρησιμοποιώντας 
+      <strong>inotify</strong>, <strong>FIFOs</strong>, <strong>fork/exec</strong> 
+      και <strong>low-level I/O syscalls</strong> για real-time mirroring αρχείων.
+    </p>
+    <div class="badges">
+      <span class="badge c">C (gcc -Wall -g)</span>
+      <span class="badge unix">Linux/Unix</span>
+      <span class="badge ipc">IPC · inotify · FIFOs</span>
+      <span class="badge syscalls">Low-level I/O</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>📖 Σχετικά με την Εργασία</h2>
+    <p>
+      Η παρούσα εργασία αποτελεί την <strong>1η Προγραμματιστική Εργασία</strong> 
+      του μαθήματος <em>«Προγραμματισμός Συστημάτων»</em>. Υλοποιεί ένα 
+      σύστημα <strong>real-time συγχρονισμού αρχείων</strong> από έναν 
+      <em>source</em> φάκελο σε έναν <em>target</em> φάκελο, 
+      χρησιμοποιώντας αποκλειστικά low-level system calls.
+    </p>
+
+    <div class="grid">
+      <div class="card">
+        <h3>📡 Real-time Monitoring</h3>
+        <p>Χρήση <strong>inotify</strong> για ανίχνευση δημιουργίας, τροποποίησης 
+        και διαγραφής αρχείων στον source φάκελο.</p>
+      </div>
+      <div class="card">
+        <h3>🔗 IPC Mechanisms</h3>
+        <p>Δύο <strong>named pipes (FIFOs)</strong> για console↔manager και 
+        <strong>anonymous pipes</strong> για worker→manager.</p>
+      </div>
+      <div class="card">
+        <h3>⚙️ Process Model</h3>
+        <p><strong>fork() + exec()</strong> για κάθε sync job — ένας worker 
+        process ανά αλλαγή αρχείου.</p>
+      </div>
+    </div>
+
+    <div class="alert warn">
+      <strong>Σημείωση:</strong> Η παρούσα υλοποίηση <strong>δεν καλύπτει 
+      πλήρως</strong> την εκφώνηση της εργασίας. Δείτε τη σελίδα 
+      <a onclick="go('limitations')" style="color:var(--accent); cursor:pointer; text-decoration:underline;">
+      Περιορισμοί</a> για την πλήρη λίστα αποκλίσεων.
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>🏗️ Components</h2>
+    <p style="color:var(--text-muted); margin-bottom:1rem;">
+      Το σύστημα αποτελείται από 4 executables. Πατήστε σε κάποιο για λεπτομέρειες.
+    </p>
+    <div class="grid">
+      <div class="card comp-card console" onclick="go('console')">
+        <h3>Console <span class="tag console">UI</span></h3>
+        <p>Διεπαφή χρήστη — στέλνει εντολές στον manager μέσω FIFO.</p>
+      </div>
+      <div class="card comp-card manager" onclick="go('manager')">
+        <h3>Manager <span class="tag manager">daemon</span></h3>
+        <p>Κεντρικός daemon — monitors, multiplexes, dispatch commands.</p>
+      </div>
+      <div class="card comp-card worker" onclick="go('worker')">
+        <h3>Worker <span class="tag worker">sync</span></h3>
+        <p>Εκτελεί ένα sync job — αντίγραφο αρχείου ή φακέλου.</p>
+      </div>
+      <div class="card comp-card script" onclick="go('script')">
+        <h3>fss_script.sh <span class="tag script">utility</span></h3>
+        <p>Bash script για reports και cleanup.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>⚡ Key Concepts</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>select() Multiplexing</h3>
+        <p>Ο manager περιμένει ταυτόχρονα σε <code>fss_in</code> FIFO 
+        και <code>inotify_fd</code>.</p>
+      </div>
+      <div class="card">
+        <h3>dup2() Redirection</h3>
+        <p>Ο worker γράφει το <code>EXEC_REPORT</code> στο 
+        <code>STDOUT_FILENO</code> που έχει ανακατευθυνθεί σε pipe.</p>
+      </div>
+      <div class="card">
+        <h3>Linked Lists</h3>
+        <p><code>SyncInfo</code> και <code>WatchEntry</code> ως απλές 
+        συνδεδεμένες λίστες.</p>
+      </div>
+      <div class="card">
+        <h3>Low-level I/O</h3>
+        <p><code>open/read/write/unlink/close</code> αντί για stdio — 
+        χωρίς <code>system()</code>, <code>cp</code> ή <code>rsync</code>.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>👥 Ομάδα</h2>
+    <table>
+      <thead><tr><th>Ονοματεπώνυμο</th><th>Α.Μ.</th></tr></thead>
+      <tbody>
+        <tr><td>Παπαθανασίου Ελένη</td><td>1115202200135</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ==================== ARCHITECTURE ==================== -->
+<section class="page" id="architecture">
+  <div class="comp-header manager">
+    <div class="icon">🏗️</div>
+    <div>
+      <h1>Αρχιτεκτονική Συστήματος</h1>
+      <p>Υψηλού επιπέδου σχεδίαση και ροή δεδομένων</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>📊 High-Level Architecture</h2>
+    <div class="ascii-diagram">
+        +-------------+         fss_in          +---------------+
+        | fss_console | ----------------------> |  fss_manager  |
+        |             | <---------------------- |               |
+        +-------------+         fss_out         +-------+-------+
+                                                      |
+                                       fork() + exec()| (pipe for stdout)
+                                                      v
+                                             +-----------------+
+                                             |     worker      |
+                                             | (one per job)   |
+                                             +-----------------+
+                                                      |
+                                                      v
+                                          source_dir  →  target_dir
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>🔄 Ροή Δεδομένων</h2>
+    <ol class="step-list">
+      <li><strong>Console → fss_in (FIFO)</strong><span>Ο χρήστης πληκτρολογεί εντολή. Η console τη γράφει στο <code>fss_in</code>.</span></li>
+      <li><strong>Manager διαβάζει από fss_in</strong><span>Ο manager έχει κάνει <code>open("fss_in", O_RDONLY)</code> και περιμένει με <code>select()</code>.</span></li>
+      <li><strong>Manager απαντάει μέσω fss_out</strong><span>Γράφει response στο <code>fss_out</code> FIFO που έχει ανοίξει <code>O_WRONLY</code>.</span></li>
+      <li><strong>Console διαβάζει από fss_out</strong><span>Χρήση <code>select()</code> με timeout 1s για drain όλων των γραμμών.</span></li>
+      <li><strong>Manager παρακολουθεί με inotify</strong><span>Κάθε source φάκελος έχει <code>inotify_add_watch</code> για CREATE/MODIFY/DELETE.</span></li>
+      <li><strong>Spawn worker</strong><span>Σε κάθε event: <code>fork()</code>, <code>dup2(pipefd[1], STDOUT_FILENO)</code>, <code>execl("./worker", ...)</code>.</span></li>
+      <li><strong>Worker εκτελεί sync</strong><span>FULL: recursive copy. ADDED/MODIFIED: single file copy. DELETED: unlink.</span></li>
+      <li><strong>Worker γράφει EXEC_REPORT</strong><span>Γράφει στο STDOUT (που είναι redirected στο pipe).</span></li>
+      <li><strong>Manager διαβάζει από pipe</strong><span>Parse <code>STATUS:</code> και <code>DETAILS:</code>, γράφει στο <code>manager_logfile.txt</code>.</span></li>
+    </ol>
+  </div>
+
+  <div class="section">
+    <h2>📡 IPC Mechanisms</h2>
+    <table>
+      <thead>
+        <tr><th>Channel</th><th>Type</th><th>Direction</th><th>Purpose</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>fss_in</code></td><td>FIFO (named pipe)</td><td>console → manager</td><td>User commands</td></tr>
+        <tr><td><code>fss_out</code></td><td>FIFO (named pipe)</td><td>manager → console</td><td>Responses</td></tr>
+        <tr><td><code>pipe()</code></td><td>Anonymous pipe</td><td>worker → manager</td><td>EXEC_REPORT</td></tr>
+        <tr><td><code>inotify_fd</code></td><td>inotify fd</td><td>kernel → manager</td><td>Filesystem events</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>🧠 In-Memory Structures</h2>
+
+    <h3>SyncInfo — Linked List</h3>
+    <pre><span class="kw">typedef struct</span> <span class="type">SyncInfo</span> {
+    <span class="type">char</span> source[<span class="num">256</span>];           <span class="cm">// source path</span>
+    <span class="type">char</span> target[<span class="num">256</span>];           <span class="cm">// target path</span>
+    <span class="type">char</span> status[<span class="num">20</span>];            <span class="cm">// "idle", "SUCCESS", ...</span>
+    <span class="type">char</span> last_sync_time[<span class="num">20</span>];    <span class="cm">// timestamp</span>
+    <span class="type">int</span>  active;                 <span class="cm">// is it monitored?</span>
+    <span class="type">int</span>  error_count;            <span class="cm">// total errors</span>
+    <span class="kw">struct</span> SyncInfo* next;       <span class="cm">// next node</span>
+} SyncInfo;</pre>
+
+    <h3>WatchEntry — Linked List</h3>
+    <pre><span class="kw">typedef struct</span> <span class="type">WatchEntry</span> {
+    <span class="type">int</span>  wd;                    <span class="cm">// inotify watch descriptor</span>
+    <span class="type">char</span> source[<span class="num">256</span>];         <span class="cm">// source path</span>
+    <span class="kw">struct</span> WatchEntry *next;    <span class="cm">// next node</span>
+} WatchEntry;</pre>
+
+    <div class="alert info">
+      <strong>Γιατί linked lists:</strong> Μικρός αριθμός monitored directories — 
+      δεν χρειάζεται hash table. Linear search είναι αρκετά γρήγορη.
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>🎯 Design Choices</h2>
+    <ol class="step-list">
+      <li><strong>select() για multiplexing</strong><span>Ο manager περιμένει ταυτόχρονα σε FIFO και inotify fd — χωρίς threads.</span></li>
+      <li><strong>Worker per job, forked on demand</strong><span>Stateless workers, isolation σε failures, απλός κώδικας.</span></li>
+      <li><strong>Anonymous pipe per worker</strong><span>Ο worker γράφει στο stdout που έχει γίνει dup2 στο pipe.</span></li>
+      <li><strong>Error aggregation in worker</strong><span>Όλα τα σφάλματα μαζεύονται σε <code>error_log[]</code> και εκπέμπονται στο τέλος.</span></li>
+      <li><strong>Blocking FIFOs</strong><span>Ο manager ανοίγει <code>O_RDONLY</code>, η console <code>O_WRONLY</code>. Χρειάζεται σωστή σειρά startup.</span></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ==================== CONSOLE ==================== -->
+<section class="page" id="console">
+  <div class="comp-header console">
+    <div class="icon">💻</div>
+    <div>
+      <h1>fss_console</h1>
+      <p>User Interface — <code>fss_console.c</code></p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">1</span> Command Line</h2>
+    <pre>./fss_console -l &lt;console_logfile&gt;</pre>
+
+    <div class="alert warn">
+      <strong>Σημείωση:</strong> Το <code>-l</code> argument ελέγχεται αλλά η τιμή 
+      του <strong>αγνοείται</strong>. Το log file είναι hardcoded ως 
+      <code>console_logfile.txt</code> (μέσω <code>#define log_file</code>).
+    </div>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">2</span> Λειτουργία</h2>
+    <ol class="step-list">
+      <li><strong>Έλεγχος arguments</strong><span>Αν <code>argc != 3</code> ή <code>argv[1] != "-l"</code> → exit.</span></li>
+      <li><strong>Άνοιγμα FIFOs</strong><span><code>fd_in = open("fss_in", O_WRONLY)</code>, <code>fd_out = open("fss_out", O_RDWR)</code>.</span></li>
+      <li><strong>Ανάγνωση stdin</strong><span><code>fgets(message, ...)</code>, αφαίρεση newline.</span></li>
+      <li><strong>Logging</strong><span><code>log_entry_file(message)</code> + <code>newline_in_file()</code>.</span></li>
+      <li><strong>Αποστολή εντολής</strong><span><code>write(fd_in, message, strlen+1)</code>.</span></li>
+      <li><strong>Λήψη απάντησης</strong><span>Loop <code>select()</code> με timeout 1s στο <code>fd_out</code>.</span></li>
+      <li><strong>Έξοδος</strong><span>Αν η εντολή ήταν <code>shutdown</code> → break.</span></li>
+    </ol>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">3</span> Response Draining</h2>
+    <p>Χρήση <code>select()</code> με timeout για να διαβαστούν ΟΛΕΣ οι γραμμές 
+    της απάντησης:</p>
+
+    <pre><span class="kw">do</span> {
+    FD_ZERO(&amp;read_fds);
+    FD_SET(fd_out, &amp;read_fds);
+    timeout.tv_sec = <span class="num">1</span>;
+    
+    retval = select(fd_out + <span class="num">1</span>, &amp;read_fds, <span class="kw">NULL</span>, <span class="kw">NULL</span>, &amp;timeout);
+    
+    <span class="kw">if</span> (retval &gt; <span class="num">0</span>) {
+        ssize_t bytes_read = read(fd_out, response, <span class="kw">sizeof</span>(response) - <span class="num">1</span>);
+        <span class="kw">if</span> (bytes_read &gt; <span class="num">0</span>) {
+            response[bytes_read] = <span class="str">'\0'</span>;
+            log_entry(response);
+            log_entry_file(response);
+        }
+    }
+} <span class="kw">while</span> (retval != <span class="num">0</span>);  <span class="cm">// timeout = no more data</span></pre>
+
+    <div class="alert info">
+      <strong>Γιατί timeout=1s:</strong> Ο manager μπορεί να στείλει πολλαπλές 
+      γραμμές (π.χ. για <code>add</code>: "Added directory" + "Monitoring started"). 
+      Το loop σταματάει όταν περάσει 1 δευτερόλεπτο χωρίς νέα δεδομένα.
+    </div>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">4</span> Logging Format</h2>
+    <pre><span class="cm">// Αναγνώριση εντολών</span>
+<span class="kw">if</span> (!strcmp(entry, <span class="str">"shutdown"</span>) || 
+    !strncmp(entry, <span class="str">"add "</span>, <span class="num">4</span>) || 
+    !strncmp(entry, <span class="str">"cancel "</span>, <span class="num">7</span>) || 
+    !strncmp(entry, <span class="str">"status "</span>, <span class="num">7</span>) || 
+    !strncmp(entry, <span class="str">"sync "</span>, <span class="num">5</span>))
+    fprintf(log, <span class="str">"[%s] Command %s\n"</span>, timestamp, entry);
+<span class="kw">else</span>
+    fprintf(log, <span class="str">"[%s] %s\n"</span>, timestamp, entry);</pre>
+
+    <div class="result-box">[2025-02-10 10:00:01] Command add /home/user/docs /backup/docs
+[2025-02-10 10:00:01] Added directory: /home/user/docs -> /backup/docs
+[2025-02-10 10:00:01] Monitoring started for /home/user/docs</div>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">5</span> Output</h2>
+    <div class="result-box">$ ./fss_console -l console_logfile.txt
+&gt; add /home/user/docs /backup/docs
+[2025-02-10 10:00:01] Added directory: /home/user/docs -> /backup/docs
+[2025-02-10 10:00:01] Monitoring started for /home/user/docs
+&gt; status /home/user/docs
+[2025-02-10 10:05:22] Status requested for /home/user/docs
+Directory: /home/user/docs
+Target: /backup/docs
+Last Sync: 2025-02-10 10:00:01
+Errors: 0
+Status: idle
+&gt; shutdown
+[2025-02-10 10:06:00] Shutting down manager...
+[2025-02-10 10:06:00] Waiting for all active workers to finish.
+[2025-02-10 10:06:00] Processing remaining queued tasks.
+[2025-02-10 10:06:00] Manager shutdown complete.</div>
+  </div>
+</section>
+
+<!-- ==================== MANAGER ==================== -->
+<section class="page" id="manager">
+  <div class="comp-header manager">
+    <div class="icon">⚙️</div>
+    <div>
+      <h1>fss_manager</h1>
+      <p>Central Daemon — <code>fss_manager.c</code></p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">1</span> Command Line</h2>
+    <pre>./fss_manager -c &lt;config_file&gt; [-n &lt;worker_limit&gt;]</pre>
+
+    <div class="alert danger">
+      <strong>Απόκλιση από spec:</strong> 
+      <ul style="margin-left:1.5rem; margin-top:0.5rem;">
+        <li>Το <code>-l</code> flag <strong>δεν</strong> γίνεται parse — 
+        το log file είναι hardcoded ως <code>manager_logfile.txt</code>.</li>
+        <li>Το <code>-n</code> διαβάζεται αλλά <strong>πάντα αντικαθίσταται</strong> 
+        από <code>WORKER_LIMIT = 5</code>.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">2</span> Startup Sequence</h2>
+    <ol class="step-list">
+      <li><strong>Parse arguments</strong><span>Ανάγνωση <code>-c</code> (required) και <code>-n</code> (optional, αγνοείται).</span></li>
+      <li><strong>Κλήση sigchld_handler(SIGCHLD)</strong><span>⚠️ Ο handler <strong>δεν εγκαθίσταται</strong> με <code>signal()</code> — απλή κλήση, δεν εκτελείται ποτέ.</span></li>
+      <li><strong>Δημιουργία FIFOs</strong><span><code>mkfifo("fss_in", 0600)</code> και <code>mkfifo("fss_out", 0600)</code>. Δεν γίνεται <code>unlink()</code> πρώτα.</span></li>
+      <li><strong>Άνοιγμα FIFOs</strong><span><code>fd_in = open(O_RDONLY)</code>, <code>fd_out = open(O_WRONLY)</code>.</span></li>
+      <li><strong>Άνοιγμα config file</strong><span>Parse κάθε γραμμής με <code>sscanf("(%[^,],%[^)])", source, target)</code>.</span></li>
+      <li><strong>Για κάθε pair</strong><span>Launch FULL worker, <code>add_sync_info</code>, <code>inotify_add_watch</code>, <code>add_watch_entry</code>.</span></li>
+      <li><strong>Main loop</strong><span><code>select()</code> σε <code>fd_in</code> και <code>inotify_fd</code>.</span></li>
+    </ol>
+
+    <div class="alert warn">
+      <strong>Σημείωση:</strong> Δεν εκτυπώνονται μηνύματα "Added directory" / 
+      "Monitoring started" για τα config-file pairs (αντίθετα με το spec).
+    </div>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">3</span> Main Loop</h2>
+    <pre><span class="kw">while</span> (<span class="num">1</span>) {
+    fd_set readfds;
+    FD_ZERO(&amp;readfds);
+    FD_SET(fd_in, &amp;readfds);
+    FD_SET(inotify_fd, &amp;readfds);
+    
+    max_fd = (fd_in &gt; inotify_fd) ? fd_in : inotify_fd;
+    
+    select(max_fd + <span class="num">1</span>, &amp;readfds, <span class="kw">NULL</span>, <span class="kw">NULL</span>, <span class="kw">NULL</span>);
+    
+    <span class="kw">if</span> (FD_ISSET(fd_in, &amp;readfds)) {
+        read(fd_in, buffer, ...);
+        <span class="cm">// dispatch: shutdown / add / cancel / status / sync</span>
+    }
+    
+    <span class="kw">if</span> (FD_ISSET(inotify_fd, &amp;readfds)) {
+        len = read(inotify_fd, buf, ...);
+        <span class="cm">// walk events, spawn worker for each</span>
+    }
+}</pre>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">4</span> Command Dispatch</h2>
+    <table>
+      <thead><tr><th>Command</th><th>Behavior</th></tr></thead>
+      <tbody>
+        <tr><td><code>shutdown</code></td><td>4 μηνύματα, break — <strong>χωρίς</strong> αναμονή workers.</td></tr>
+        <tr><td><code>add &lt;src&gt; &lt;dst&gt;</code></td><td>"Added directory" + "Monitoring started", worker_on, inotify watch. <strong>Χωρίς duplicate check.</strong></td></tr>
+        <tr><td><code>cancel &lt;src&gt;</code></td><td>"Monitoring stopped", remove watch. <strong>Χωρίς check</strong> αν υπάρχει.</td></tr>
+        <tr><td><code>status &lt;src&gt;</code></td><td><code>find_sync_info</code> — <strong>χωρίς NULL check</strong> → <span style="color:var(--danger)">segfault</span>.</td></tr>
+        <tr><td><code>sync &lt;src&gt;</code></td><td>Ίδιο με status — <strong>χωρίς NULL check</strong>.</td></tr>
+        <tr><td><code>other</code></td><td><code>Invalid input: &lt;cmd&gt;</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">5</span> inotify Event Handling</h2>
+    <ol class="step-list">
+      <li><strong>Walk buffer</strong><span><code>i += sizeof(inotify_event) + event->len</code> για κάθε event.</span></li>
+      <li><strong>Determine operation</strong><span><code>IN_CREATE → "ADDED"</code>, <code>IN_MODIFY → "MODIFIED"</code>, <code>IN_DELETE → "DELETED"</code>.</span></li>
+      <li><strong>Lookup source</strong><span><code>lookup_source_from_wd(event->wd)</code> από το WatchEntry list.</span></li>
+      <li><strong>Get target</strong><span><code>get_target_for_source(source_dir)</code> από το SyncInfo list.</span></li>
+      <li><strong>Spawn worker</strong><span><code>worker_on(source_dir, target, event->name, operation)</code>.</span></li>
+    </ol>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">6</span> Logging</h2>
+    <p>Δύο helpers με <strong>διαφορετικά</strong> formats:</p>
+
+    <h3>log_entry_file() — απλό format</h3>
+    <pre>[TIMESTAMP] &lt;message&gt;</pre>
+
+    <h3>log_entry_file1() — full format</h3>
+    <pre>[TIMESTAMP] [SOURCE] [TARGET] [PID] [OP] [RESULT] [DETAILS]</pre>
+
+    <div class="alert danger">
+      <strong>Ασυνέπεια:</strong> Το spec ζητάει <em>ενιαίο</em> format, αλλά 
+      εδώ συνυπάρχουν δύο διαφορετικά formats στο ίδιο log file.
+    </div>
+
+    <div class="result-box">[2025-02-10 10:00:01] Added directory: /home/user/docs -> /backup/docs
+[2025-02-10 10:00:01] Monitoring started for /home/user/docs
+
+[2025-02-10 10:00:05] [/home/user/docs] [/backup/docs] [1234] [FULL] [SUCCESS] [10 files copied]
+
+[2025-02-10 10:15:10] [/home/user/docs] [/backup/docs] [1237] [ADDED] [SUCCESS] [File: report.pdf]</div>
+  </div>
+</section>
+
+<!-- ==================== WORKER ==================== -->
+<section class="page" id="worker">
+  <div class="comp-header worker">
+    <div class="icon">🔧</div>
+    <div>
+      <h1>worker</h1>
+      <p>File Sync Executor — <code>worker.c</code></p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">1</span> Invocation</h2>
+    <pre>./worker &lt;source&gt; &lt;target&gt; &lt;filename&gt; &lt;operation&gt;</pre>
+    <p style="color:var(--text-muted);">Όπου <code>operation ∈ { FULL, ADDED, MODIFIED, DELETED }</code>.</p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">2</span> Operations</h2>
+
+    <h3>FULL + filename "ALL"</h3>
+    <pre><span class="fn">copy_directory</span>(source, target):
+    dir = <span class="fn">opendir</span>(source)
+    <span class="fn">mkdir</span>(target, <span class="num">0755</span>)
+    
+    <span class="kw">while</span> (entry = <span class="fn">readdir</span>(dir)):
+        <span class="kw">if</span> entry is "." or "..": <span class="kw">continue</span>
+        
+        path_src = source/entry
+        path_dst = target/entry
+        <span class="fn">stat</span>(path_src, &amp;st)
+        
+        <span class="kw">if</span> S_ISDIR: <span class="fn">copy_directory</span>(path_src, path_dst)   <span class="cm">// recursive</span>
+        <span class="kw">if</span> S_ISREG: <span class="fn">copy_file</span>(path_src, path_dst)</pre>
+
+    <h3>ADDED / MODIFIED</h3>
+    <pre><span class="fn">copy_file</span>(source/filename, target/filename)</pre>
+
+    <h3>DELETED</h3>
+    <pre><span class="fn">unlink</span>(target/filename)</pre>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">3</span> copy_file — Low-level I/O</h2>
+    <pre><span class="type">int</span> fd_in = <span class="fn">open</span>(src, O_RDONLY);
+<span class="type">int</span> fd_out = <span class="fn">open</span>(dst, O_CREAT | O_WRONLY | O_TRUNC, <span class="num">0644</span>);
+
+<span class="kw">while</span> ((bytes_read = <span class="fn">read</span>(fd_in, buffer, BUFFER_SIZE)) &gt; <span class="num">0</span>) {
+    bytes_written = <span class="fn">write</span>(fd_out, buffer, bytes_read);
+    <span class="kw">if</span> (bytes_written != bytes_read) {
+        <span class="fn">log_error</span>(<span class="str">"Write error"</span>);
+        skipped_files++;
+        <span class="kw">break</span>;
+    }
+}
+
+<span class="fn">close</span>(fd_in);
+<span class="fn">close</span>(fd_out);</pre>
+
+    <div class="alert success">
+      <strong>Χωρίς system()/cp/rsync:</strong> Όλα τα I/O γίνονται με 
+      low-level syscalls (<code>open/read/write/unlink/close/stat/mkdir/opendir/readdir</code>).
+    </div>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">4</span> Error Handling</h2>
+    <p>Όλα τα σφάλματα μαζεύονται σε <code>error_log[2048]</code>:</p>
+
+    <pre><span class="kw">void</span> <span class="fn">log_error</span>(<span class="type">char</span> *msg) {
+    <span class="fn">strcat</span>(error_log, <span class="str">"- "</span>);
+    <span class="fn">strcat</span>(error_log, msg);
+    <span class="fn">strcat</span>(error_log, <span class="str">"\n"</span>);
+}</pre>
+
+    <p style="color:var(--text-muted);">Κλήση με <code>strerror(errno)</code> μετά από κάθε αποτυχημένο syscall.</p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">5</span> EXEC_REPORT</h2>
+    <p>Ο worker γράφει στο <code>STDOUT_FILENO</code> (που έχει γίνει dup2 στο pipe):</p>
+
+    <div class="result-box">EXEC_REPORT_START
+STATUS: SUCCESS | PARTIAL | ERROR
+DETAILS: &lt;n&gt; files copied, &lt;m&gt; skipped
+ERRORS:
+- &lt;reason1&gt;
+- &lt;reason2&gt;
+EXEC_REPORT_END</div>
+
+    <h3>Status Logic</h3>
+    <ul style="color:var(--text-muted); margin-left:1.5rem; margin-top:0.5rem;">
+      <li><strong>SUCCESS:</strong> <code>error_log</code> κενό</li>
+      <li><strong>PARTIAL:</strong> υπάρχουν errors αλλά <code>copied_files &gt; 0</code></li>
+      <li><strong>ERROR:</strong> errors χωρίς κανένα επιτυχές copy</li>
+    </ul>
+
+    <h3>Παράδειγμα</h3>
+    <div class="result-box">EXEC_REPORT_START
+STATUS: SUCCESS
+DETAILS: 10 files copied, 0 skipped
+EXEC_REPORT_END</div>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">6</span> Return Value</h2>
+    <p>Επιστρέφει <code>0</code> σε κάθε περίπτωση (ακόμα και σε σφάλματα). 
+    Ο manager <strong>δεν</strong> ελέγχει το exit code — βασίζεται 
+    αποκλειστικά στο EXEC_REPORT text.</p>
+  </div>
+</section>
+
+<!-- ==================== SCRIPT ==================== -->
+<section class="page" id="script">
+  <div class="comp-header script">
+    <div class="icon">📜</div>
+    <div>
+      <h1>fss_script.sh</h1>
+      <p>Report Generation & Cleanup Utility</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">1</span> Usage</h2>
+    <pre>./fss_script.sh -p &lt;path&gt; -c &lt;command&gt;</pre>
+
+    <p>Ο parser διαβάζει τα arguments σε loop και ελέγχει μόνο <code>-p</code> 
+    και <code>-c</code>.</p>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">2</span> Commands</h2>
+
+    <table>
+      <thead>
+        <tr><th>Command</th><th>Behavior</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>listAll</code></td>
+          <td>Parse log file line by line, strip <code>[ ]</code>, print <code>source -> target [Last Sync: date time] [status]</code>.</td>
+        </tr>
+        <tr>
+          <td><code>listMonitored</code></td>
+          <td>Ίδιο parsing, μόνο γραμμές με status <code>SUCCESS</code> ή <code>PARTIAL</code>.</td>
+        </tr>
+        <tr>
+          <td><code>listStopped</code></td>
+          <td>Ίδιο parsing, μόνο γραμμές με status <code>ERROR</code>.</td>
+        </tr>
+        <tr>
+          <td><code>purge</code></td>
+          <td>Αν <code>-p</code> is file → <code>rm</code>. Αν directory → ελέγχει αν είναι source (αρνείται) ή target (rm -rf).</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">3</span> Parsing Logic</h2>
+    <pre><span class="kw">while</span> IFS= <span class="fn">read</span> -r line || [ -n <span class="str">"$line"</span> ]; <span class="kw">do</span>
+    [[ -z <span class="str">"$line"</span> ]] &amp;&amp; <span class="kw">continue</span>              <span class="cm"># skip blank lines</span>
+    
+    <span class="fn">read</span> -ra raw_fields &lt;&lt;&lt; <span class="str">"$line"</span>
+    [[ <span class="str">"${raw_fields[2]}"</span> != \[* ]] &amp;&amp; <span class="kw">continue</span>   <span class="cm"># skip non-full-format</span>
+    
+    clean_line=${line//[\[\]]/}                  <span class="cm"># remove brackets</span>
+    <span class="fn">read</span> -ra fields &lt;&lt;&lt; <span class="str">"$clean_line"</span>
+    
+    date=<span class="str">"${fields[0]}"</span>
+    time=<span class="str">"${fields[1]}"</span>
+    source=<span class="str">"${fields[2]}"</span>
+    target=<span class="str">"${fields[3]}"</span>
+    status=<span class="str">"${fields[6]}"</span>
+<span class="kw">done</span> &lt; <span class="str">"$path"</span></pre>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">4</span> Purge Logic</h2>
+    <ol class="step-list">
+      <li><strong>Αν <code>-p</code> is regular file</strong><span><code>rm "$path"</code> + "Purge complete."</span></li>
+      <li><strong>Αν <code>-p</code> is directory</strong><span>Διαβάζει <code>manager_logfile.txt</code> (hardcoded), ψάχνει αν το path είναι source ή target.</span></li>
+      <li><strong>Αν είναι source</strong><span>Αρνείται — "The $path is a source directory."</span></li>
+      <li><strong>Αν είναι target</strong><span><code>rm -rf "$path"</code> + "Purge complete."</span></li>
+    </ol>
+
+    <div class="alert warn">
+      <strong>Hardcoded path:</strong> Για directory case, το script διαβάζει 
+      <code>manager_logfile.txt</code> unconditionally — δεν παράγεται από το 
+      <code>-p</code>. Αυτό γιατί το target directory θα είχε ήδη διαγραφεί 
+      όταν θα έκανε lookup.
+    </div>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">5</span> Παραδείγματα</h2>
+    <pre><span class="cm"># Λίστα όλων των syncs</span>
+./fss_script.sh -p manager_logfile.txt -c listAll
+
+<span class="cm"># Μόνο επιτυχημένα</span>
+./fss_script.sh -p manager_logfile.txt -c listMonitored
+
+<span class="cm"># Μόνο αποτυχημένα</span>
+./fss_script.sh -p manager_logfile.txt -c listStopped
+
+<span class="cm"># Διαγραφή target directory</span>
+./fss_script.sh -p /backup/pics -c purge</pre>
+  </div>
+</section>
+
+<!-- ==================== LIMITATIONS ==================== -->
+<section class="page" id="limitations">
+  <div class="comp-header manager">
+    <div class="icon">⚠️</div>
+    <div>
+      <h1>Περιορισμοί & Αποκλίσεις</h1>
+      <p>Τι δεν έχει ολοκληρωθεί πλήρως σε σχέση με την εκφώνηση</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>📊 Συνολική Κάλυψη</h2>
+    <p>Η παρούσα υλοποίηση <strong>δεν καλύπτει πλήρως</strong> την εκφώνηση 
+    της εργασίας. Οι κύριες λειτουργίες (inotify monitoring, real-time sync, 
+    commands, logging) λειτουργούν, αλλά υπάρχουν σημαντικές αποκλίσεις 
+    από τις προδιαγραφές.</p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="value">✓</span>
+        <span class="name">Core Sync</span>
+      </div>
+      <div class="stat">
+        <span class="value">✓</span>
+        <span class="name">inotify</span>
+      </div>
+      <div class="stat">
+        <span class="value">⚠️</span>
+        <span class="name">Error Handling</span>
+      </div>
+      <div class="stat">
+        <span class="value">✗</span>
+        <span class="name">Worker Queue</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>🐛 Αποκλίσεις από το Spec</h2>
+
+    <div class="limitation">
+      <div class="icon-box">1</div>
+      <div class="content">
+        <strong>-l manager log argument ignored</strong>
+        <span>Το <code>-l</code> flag δεν γίνεται parse — το log path είναι hardcoded ως <code>manager_logfile.txt</code> στο <code>log_worker_utils.c</code>.</span>
+      </div>
+    </div>
+
+    <div class="limitation">
+      <div class="icon-box">2</div>
+      <div class="content">
+        <strong>-l console log argument ignored (value)</strong>
+        <span>Το <code>-l</code> argument ελέγχεται ότι υπάρχει αλλά η τιμή αγνοείται. Το log file είναι hardcoded ως <code>console_logfile.txt</code>.</span>
+      </div>
+    </div>
+
+    <div class="limitation">
+      <div class="icon-box">3</div>
+      <div class="content">
+        <strong>SIGCHLD handler not installed</strong>
+        <span>Ο κώδικας καλεί <code>sigchld_handler(SIGCHLD)</code> χωρίς <code>signal()</code>/<code>sigaction()</code>. Ο handler δεν εκτελείται ποτέ → <strong>zombie workers συσσωρεύονται</strong>.</span>
+      </div>
+    </div>
+
+    <div class="limitation">
+      <div class="icon-box">4</div>
+      <div class="content">
+        <strong>No worker_limit queue</strong>
+        <span>Το <code>-n</code> διαβάζεται αλλά πάντα αντικαθίσταται από <code>WORKER_LIMIT = 5</code>. Δεν υπάρχει queue — κάθε event spawns worker άμεσα.</span>
+      </div>
+    </div>
+
+    <div class="limitation">
+      <div class="icon-box">5</div>
+      <div class="content">
+        <strong>Config file format mismatch</strong>
+        <span>Ο manager περιμένει <code>(source,target)</code> per line (παρενθέσεις + κόμμα). Το spec ζητάει space-separated format.</span>
+      </div>
+    </div>
+
+    <div class="limitation">
+      <div class="icon-box">6</div>
+      <div class="content">
+        <strong>FIFOs not cleaned up before mkfifo</strong>
+        <span>Αν τα <code>fss_in</code>/<code>fss_out</code> υπάρχουν από προηγούμενη εκτέλεση, το <code>mkfifo</code> αποτυγχάνει → ο manager δεν ξεκινά.</span>
+      </div>
+    </div>
+
+    <div class="limitation">
+      <div class="icon-box">7</div>
+      <div class="content">
+        <strong>No "Added directory" / "Monitoring started" for config entries</strong>
+        <span>Το spec απαιτεί αυτά τα μηνύματα on startup για κάθε config-file pair. Ο κώδικας τα εκτυπώνει μόνο για runtime <code>add</code>.</span>
+      </div>
+    </div>
+
+    <div class="limitation">
+      <div class="icon-box">8</div>
+      <div class="content">
+        <strong>No duplicate-add check</strong>
+        <span>Το <code>add</code> πάντα ξεκινάει νέο full sync ακόμα και αν το source είναι ήδη registered. Το spec θέλει <code>Already in queue: &lt;src&gt;</code>.</span>
+      </div>
+    </div>
+
+    <div class="limitation">
+      <div class="icon-box">9</div>
+      <div class="content">
+        <strong>No "Directory not monitored" for cancel</strong>
+        <span>Το <code>cancel</code> πάντα τυπώνει "Monitoring stopped" ανεξάρτητα από το αν το source ήταν monitored.</span>
+      </div>
+    </div>
+
+    <div class="limitation">
+      <div class="icon-box">10</div>
+      <div class="content">
+        <strong>No "Sync already in progress" handling</strong>
+        <span>Το <code>sync</code> πάντα κάνει fork νέου worker. Δεν ελέγχει αν υπάρχει ήδη sync για το source.</span>
+      </div>
+    </div>
+
+    <div class="limitation">
+      <div class="icon-box">11</div>
+      <div class="content">
+        <strong>status_mode / sync_mode no NULL check</strong>
+        <span>Αν <code>find_sync_info</code> επιστρέψει <code>NULL</code>, γίνεται dereference σε <code>new-&gt;source</code> → <strong>segfault</strong>. Το spec θέλει <code>Directory not monitored: &lt;src&gt;</code>.</span>
+      </div>
+    </div>
+
+    <div class="limitation">
+      <div class="icon-box">12</div>
+      <div class="content">
+        <strong>No graceful shutdown</strong>
+        <span>Το <code>shutdown_mode</code> τυπώνει 4 μηνύματα και επιστρέφει. Το main loop κάνει break <strong>χωρίς</strong> αναμονή ενεργών workers.</span>
+      </div>
+    </div>
+
+    <div class="limitation">
+      <div class="icon-box">13</div>
+      <div class="content">
+        <strong>Inconsistent manager log format</strong>
+        <span>Τα worker results χρησιμοποιούν full format, αλλά όλα τα άλλα μηνύματα χρησιμοποιούν <code>[TS] &lt;message&gt;</code>. Δύο formats στο ίδιο log.</span>
+      </div>
+    </div>
+
+    <div class="limitation">
+      <div class="icon-box">14</div>
+      <div class="content">
+        <strong>Makefile not true separate compilation</strong>
+        <span>Το <code>MANAGER_OBJS</code> ορίζεται αλλά δεν χρησιμοποιείται. Όλα τα sources compile σε ένα <code>gcc</code> call.</span>
+      </div>
+    </div>
+
+    <div class="limitation">
+      <div class="icon-box">15</div>
+      <div class="content">
+        <strong>fss_script.sh purge reads hardcoded path</strong>
+        <span>Για directory case, το script διαβάζει <code>manager_logfile.txt</code> unconditionally αντί να παράγει από το <code>-p</code>.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>🧪 Testing Checklist — Αποτελέσματα</h2>
+
+    <div class="checklist">
+      <div class="check-item">
+        <span class="status ok">✓</span>
+        <span>Start manager με 2-line <code>(src,tgt)</code> config → 2 FULL workers, 2 inotify watches</span>
+      </div>
+      <div class="check-item">
+        <span class="status fail">✗</span>
+        <span>Start με space-separated config → <strong>no watches</strong> (sscanf fails silently)</span>
+      </div>
+      <div class="check-item">
+        <span class="status fail">✗</span>
+        <span>Start manager twice without <code>make clean</code> → <strong>mkfifo fails</strong>, open fails, manager exits</span>
+      </div>
+      <div class="check-item">
+        <span class="status ok">✓</span>
+        <span><code>add /src /dst</code> → "Added directory" + "Monitoring started" + new worker</span>
+      </div>
+      <div class="check-item">
+        <span class="status warn">⚠️</span>
+        <span><code>add</code> already known source → syncs again (no "Already in queue")</span>
+      </div>
+      <div class="check-item">
+        <span class="status ok">✓</span>
+        <span>Create file in monitored source → ADDED entry, file copied</span>
+      </div>
+      <div class="check-item">
+        <span class="status ok">✓</span>
+        <span>Modify file → MODIFIED entry, target overwritten</span>
+      </div>
+      <div class="check-item">
+        <span class="status ok">✓</span>
+        <span>Delete file → DELETED entry, target file removed</span>
+      </div>
+      <div class="check-item">
+        <span class="status warn">⚠️</span>
+        <span><code>cancel /src</code> → "Monitoring stopped" even if never monitored</span>
+      </div>
+      <div class="check-item">
+        <span class="status ok">✓</span>
+        <span><code>status /src</code> (known) → Directory/Target/Last Sync/Errors/Status</span>
+      </div>
+      <div class="check-item">
+        <span class="status fail">✗</span>
+        <span><code>status /src</code> (unknown) → <strong>SEGFAULT</strong></span>
+      </div>
+      <div class="check-item">
+        <span class="status fail">✗</span>
+        <span><code>sync /src</code> (unknown) → <strong>SEGFAULT</strong></span>
+      </div>
+      <div class="check-item">
+        <span class="status warn">⚠️</span>
+        <span><code>shutdown</code> → 4 messages, exits without waiting for workers</span>
+      </div>
+      <div class="check-item">
+        <span class="status ok">✓</span>
+        <span><code>./fss_script.sh -p manager_logfile.txt -c listAll</code> → one line per directory</span>
+      </div>
+      <div class="check-item">
+        <span class="status ok">✓</span>
+        <span><code>./fss_script.sh -p /backup/pics -c purge</code> → target directory removed</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>🎯 Τι Λειτουργεί Σωστά</h2>
+
+    <div class="grid">
+      <div class="card">
+        <h3>✅ Real-time Sync</h3>
+        <p>Το inotify monitoring και το άμεσο sync αρχείων λειτουργούν σωστά για 
+        flat directories.</p>
+      </div>
+      <div class="card">
+        <h3>✅ IPC Mechanisms</h3>
+        <p>FIFOs, anonymous pipes, dup2 redirection — όλα λειτουργούν όπως 
+        προβλέπεται.</p>
+      </div>
+      <div class="card">
+        <h3>✅ Low-level I/O</h3>
+        <p>Ο worker χρησιμοποιεί syscalls (open/read/write/unlink) χωρίς 
+        system() ή shell commands.</p>
+      </div>
+      <div class="card">
+        <h3>✅ Error Aggregation</h3>
+        <p>Τα σφάλματα συσσωρεύονται και αναφέρονται στο EXEC_REPORT 
+        στο τέλος κάθε job.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>🔧 Προτεινόμενες Βελτιώσεις</h2>
+    <ol class="step-list">
+      <li><strong>Εγκατάσταση SIGCHLD handler</strong><span>Χρήση <code>sigaction(SIGCHLD, &amp;sa, NULL)</code> για reaping των zombie workers.</span></li>
+      <li><strong>NULL checks στα status/sync</strong><span>Έλεγχος αν <code>find_sync_info</code> επιστρέφει NULL πριν το dereference.</span></li>
+      <li><strong>Parse -l arguments</strong><span>Χρήση των paths από τα CLI arguments αντί για hardcoded log files.</span></li>
+      <li><strong>Duplicate detection στο add</strong><span>Έλεγχος αν το source υπάρχει ήδη — μήνυμα "Already in queue".</span></li>
+      <li><strong>Graceful shutdown</strong><span>Αναμονή για active workers με <code>waitpid()</code> πριν το exit.</span></li>
+      <li><strong>FIFO cleanup</strong><span><code>unlink()</code> πριν το <code>mkfifo()</code> για να αποφευχθεί το startup failure.</span></li>
+      <li><strong>Uniform log format</strong><span>Ίδιο format για όλα τα entries του manager log file.</span></li>
+      <li><strong>Worker limit queue</strong><span>Χρήση του <code>-n</code> value με bounded queue για αποφυγή υπερφόρτωσης.</span></li>
+    </ol>
+  </div>
+
+  <div class="section">
+    <h2>📌 Συμπέρασμα</h2>
+    <p>
+      Το σύστημα υλοποιεί επιτυχώς τις <strong>βασικές λειτουργίες</strong> 
+      real-time file synchronization με inotify, FIFOs και fork/exec. 
+      Ωστόσο, υπάρχουν <strong>15 σημαντικές αποκλίσεις</strong> από την 
+      εκφώνηση που αφορούν κυρίως:
+    </p>
+    <ul style="color:var(--text-muted); margin-left:1.5rem; margin-top:0.75rem;">
+      <li><strong>Robustness</strong> — NULL checks, graceful shutdown, SIGCHLD</li>
+      <li><strong>Configuration</strong> — CLI arguments ignored, format mismatch</li>
+      <li><strong>Consistency</strong> — mixed log formats, no duplicate detection</li>
+      <li><strong>Scalability</strong> — no worker queue, no worker limit enforcement</li>
+    </ul>
+    <p style="color:var(--text-muted); margin-top:1rem;">
+      Οι αποκλίσεις είναι <strong>καταγεγραμμένες ρητά</strong> στο README 
+      της εργασίας, δείχνοντας πλήρη επίγνωση των περιορισμών της υλοποίησης.
+    </p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  Εργασία · Προγραμματισμός Συστημάτων · ΕΚΠΑ<br>
+  <span style="opacity:0.6;">© 2025 — Παπαθανασίου Ελένη</span>
+</footer>
+
+<script>
+function go(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+  
+  const target = document.getElementById(page);
+  if (target) target.classList.add('active');
+  
+  const link = document.querySelector(`.nav-links a[data-page="${page}"]`);
+  if (link) link.classList.add('active');
+  
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  history.replaceState(null, '', '#' + page);
+}
+
+window.addEventListener('load', () => {
+  const hash = window.location.hash.slice(1) || 'home';
+  go(hash);
+});
+
+window.addEventListener('hashchange', () => {
+  const hash = window.location.hash.slice(1) || 'home';
+  go(hash);
+});
+</script>
+</body>
+</html>
