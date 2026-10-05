@@ -22,6 +22,10 @@ The system consists of four executables and one bash script:
 | `worker`      | Performs a single sync job (full directory or single file) |
 | `fss_script.sh` | Report generation and cleanup utility |
 
+🌐 **[View the interactive presentation](https://sdi2200135.github.io/FileSync-System-FSS/)**
+
+[![Website](https://img.shields.io/badge/Website-Live-brightgreen)](https://sdi2200135.github.io/FileSync-System-FSS/)
+
 ---
 
 ## 2. High-Level Architecture
